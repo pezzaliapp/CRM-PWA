@@ -1,23 +1,22 @@
-/* Reset di base */
 * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-  font-family: Arial, sans-serif;
-  margin: 10px;
-  padding: 0;
-  background-color: #f9f9f9;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+    font-family: Arial, sans-serif;
+    margin: 10px;
+    padding: 0;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 body.dark-mode {
-  background-color: #121212;
-  color: #e0e0e0;
+    background-color: #121212;
+    color: #e0e0e0;
 }
 
 body.dark-mode table,
@@ -25,399 +24,349 @@ body.dark-mode input,
 body.dark-mode textarea,
 body.dark-mode select,
 body.dark-mode button {
-  background-color: #1e1e1e;
-  color: #e0e0e0;
-  border: 1px solid #333333;
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    border: 1px solid #333333;
 }
 
 body.dark-mode th {
-  background-color: #2c2c2c;
-  color: #ffffff;
+    background-color: #2c2c2c;
+    color: #ffffff;
 }
 
 body.dark-mode .add-row-btn,
 body.dark-mode .pdf-btn,
 body.dark-mode .export-btn,
 body.dark-mode .noleggio-button {
-  background-color: #555555;
-  color: #ffffff;
+    background-color: #555555;
+    color: #ffffff;
 }
 
 body.dark-mode .add-row-btn:hover,
 body.dark-mode .pdf-btn:hover,
 body.dark-mode .export-btn:hover {
-  background-color: #777777;
+    background-color: #777777;
 }
 
-h1,
-h2,
-h3 {
-  text-align: center;
-  font-size: 1.5em;
-  margin: 10px 0;
+h1, h2, h3 {
+    text-align: center;
+    font-size: 1.5em;
+    margin: 10px 0;
 }
 
 .table-container {
-  margin-bottom: 20px;
-  width: 100%;
-  overflow-x: auto;
+    margin-bottom: 20px;
+    width: 100%;
+    overflow-x: auto;
 }
 
 table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 10px;
-  min-width: 600px;
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+    min-width: 600px;
 }
 
-th,
-td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
-  min-width: 100px;
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    min-width: 100px;
 }
 
 th {
-  background-color: #f2f2f2;
-  font-size: 0.9em;
+    background-color: #f2f2f2;
+    font-size: 0.9em;
 }
 
 .checkbox-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
 .installazione-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .installazione-cost {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
-.product-search-container,
-.client-search-container,
-.date-filter-section {
-  margin-bottom: 20px;
-  width: 100%;
+.product-search-container, .client-search-container, .date-filter-section {
+    margin-bottom: 20px;
+    width: 100%;
 }
 
-.add-row-btn,
-.pdf-btn,
-.noleggio-button,
-.add-client-btn,
-.submit-client-btn,
-.apply-global-discount-btn,
-.save-btn,
-.load-btn,
-.export-btn,
-.print-btn {
-  background-color: #4caf50;
-  color: white;
-  padding: 12px 20px;
-  margin: 10px 5px 10px 0;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1em;
-  width: 100%;
-  max-width: 250px;
-  text-align: center;
+.add-row-btn, .pdf-btn, .noleggio-button, .add-client-btn, .submit-client-btn, .apply-global-discount-btn, .save-btn, .load-btn, .export-btn, .print-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 20px;
+    margin: 10px 5px 10px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    width: 100%;
+    max-width: 250px;
+    text-align: center;
 }
 
-.add-row-btn:hover,
-.pdf-btn:hover,
-.noleggio-button:hover,
-.add-client-btn:hover,
-.submit-client-btn:hover,
-.apply-global-discount-btn:hover,
-.save-btn:hover,
-.load-btn:hover,
-.export-btn:hover {
-  background-color: #45a049;
+.add-row-btn:hover, .pdf-btn:hover, .noleggio-button:hover, .add-client-btn:hover, .submit-client-btn:hover, .apply-global-discount-btn:hover, .save-btn:hover, .load-btn:hover, .export-btn:hover {
+    background-color: #45a049;
 }
 
 .print-btn {
-  background-color: #007bff;
-  width: auto;
+    background-color: #007bff;
+    width: auto;
 }
 
 .print-btn:hover {
-  background-color: #0069d9;
+    background-color: #0069d9;
 }
 
 .image-preview {
-  max-width: 100px;
-  max-height: 100px;
-  margin-top: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+    max-width: 100px;
+    max-height: 100px;
+    margin-top: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
 }
 
 .modal {
-  display: none;
-  position: fixed;
-  z-index: 1000;
-  padding-top: 60px;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.4);
+    display: none; 
+    position: fixed; 
+    z-index: 1000; 
+    padding-top: 60px; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.4); 
 }
 
 .modal-content {
-  background-color: #fefefe;
-  margin: auto;
-  padding: 20px;
-  border: 1px solid #888;
-  width: 90%;
-  max-width: 500px;
-  border-radius: 8px;
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 8px;
 }
 
 .close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
 }
 
 .close:hover,
 .close:focus {
-  color: black;
-  text-decoration: none;
+    color: black;
+    text-decoration: none;
 }
 
 @media screen and (max-width: 1024px) {
-  .table-container {
-    min-width: 500px;
-  }
+    .table-container {
+        min-width: 500px;
+    }
 }
 
 @media screen and (max-width: 768px) {
-  h1,
-  h2,
-  h3 {
-    font-size: 1.2em;
-  }
+    h1, h2, h3 {
+        font-size: 1.2em;
+    }
 
-  .add-row-btn,
-  .pdf-btn,
-  .noleggio-button,
-  .add-client-btn,
-  .submit-client-btn,
-  .apply-global-discount-btn,
-  .save-btn,
-  .load-btn,
-  .export-btn,
-  .print-btn {
-    padding: 10px 16px;
-    font-size: 0.9em;
-  }
+    .add-row-btn, .pdf-btn, .noleggio-button, .add-client-btn, .submit-client-btn, .apply-global-discount-btn, .save-btn, .load-btn, .export-btn, .print-btn {
+        padding: 10px 16px;
+        font-size: 0.9em;
+    }
 
-  .installazione-cost {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+    .installazione-cost {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 
-  .global-discount-section,
-  .date-filter-section {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+    .global-discount-section, .date-filter-section {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 
-  .global-discount-section input,
-  .date-filter-section input {
-    width: 100%;
-    margin-bottom: 10px;
-  }
+    .global-discount-section input, .date-filter-section input {
+        width: 100%;
+        margin-bottom: 10px;
+    }
 
-  .image-preview {
-    max-width: 80px;
-    max-height: 80px;
-  }
+    .image-preview {
+        max-width: 80px;
+        max-height: 80px;
+    }
 
-  .modal-content {
-    width: 95%;
-  }
+    .modal-content {
+        width: 95%;
+    }
 }
 
 @media screen and (max-width: 480px) {
-  table {
-    min-width: 500px;
-  }
+    table {
+        min-width: 500px;
+    }
 
-  th,
-  td {
-    padding: 6px;
-    font-size: 0.8em;
-  }
+    th, td {
+        padding: 6px;
+        font-size: 0.8em;
+    }
 
-  .add-row-btn,
-  .pdf-btn,
-  .noleggio-button,
-  .add-client-btn,
-  .submit-client-btn,
-  .apply-global-discount-btn,
-  .save-btn,
-  .load-btn,
-  .export-btn,
-  .print-btn {
-    padding: 8px 12px;
-    font-size: 0.8em;
-  }
+    .add-row-btn, .pdf-btn, .noleggio-button, .add-client-btn, .submit-client-btn, .apply-global-discount-btn, .save-btn, .load-btn, .export-btn, .print-btn {
+        padding: 8px 12px;
+        font-size: 0.8em;
+    }
 
-  .image-preview {
-    max-width: 60px;
-    max-height: 60px;
-  }
+    .image-preview {
+        max-width: 60px;
+        max-height: 60px;
+    }
 
-  .checkbox-group label {
-    font-size: 0.9em;
-  }
+    .checkbox-group label {
+        font-size: 0.9em;
+    }
 
-  .table-container {
-    overflow-x: scroll;
-  }
-}
-
-.logo-section {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  width: 100%;
-}
-
-.note-section {
-  margin-top: 20px;
-  width: 100%;
-}
-
-.note-section textarea {
-  width: 100%;
-  height: 100px;
-  padding: 10px;
-  resize: vertical;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1em;
-}
-
-.results p {
-  font-size: 1em;
-  margin: 5px 0;
-}
-
-.global-discount-section,
-.date-filter-section {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  width: 100%;
-}
-
-.global-discount-section input,
-.date-filter-section input {
-  width: 150px;
-  padding: 8px;
-  font-size: 1em;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.save-btn,
-.load-btn,
-.export-btn {
-  background-color: #007bff;
-  width: auto;
-}
-
-.save-btn:hover,
-.load-btn:hover,
-.export-btn:hover {
-  background-color: #0069d9;
-}
-
-#savedVisitsTable {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  min-width: 700px;
-}
-
-#savedVisitsTable th,
-#savedVisitsTable td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
-  font-size: 0.9em;
-}
-
-#savedVisitsTable th {
-  background-color: #f2f2f2;
-}
-
-#notifyBtn {
-  background-color: #ff9800;
-  color: white;
-  padding: 12px 20px;
-  margin: 10px 0;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1em;
-  width: 100%;
-  max-width: 250px;
-  text-align: center;
-}
-
-#notifyBtn:hover {
-  background-color: #e68900;
+    .table-container {
+        overflow-x: scroll;
+    }
 }
 
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  #printableTable,
-  #printableTable * {
-    visibility: visible;
-  }
-  #printableTable {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-  }
-  .no-print {
-    display: none;
-  }
+    body * {
+        visibility: hidden;
+    }
+
+    #printableTable, #printableTable * {
+        visibility: visible;
+    }
+
+    #printableTable {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+
+    .no-print {
+        display: none;
+    }
 }
 
 .totals-section {
-  margin-top: 20px;
-  width: 100%;
-  max-width: 600px;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 600px;
 }
 
 .totals-section p {
-  font-size: 1.1em;
-  margin: 5px 0;
+    font-size: 1.1em;
+    margin: 5px 0;
 }
 
 .hidden {
-  display: none;
+    display: none;
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.note-section {
+    margin-top: 20px;
+    width: 100%;
+}
+
+.note-section textarea {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    resize: vertical;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+.results p {
+    font-size: 1em;
+    margin: 5px 0;
+}
+
+.global-discount-section, .date-filter-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.global-discount-section input, .date-filter-section input {
+    width: 150px;
+    padding: 8px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.save-btn, .load-btn, .export-btn {
+    background-color: #007bff;
+    width: auto;
+}
+
+.save-btn:hover, .load-btn:hover, .export-btn:hover {
+    background-color: #0069d9;
+}
+
+#savedVisitsTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    min-width: 700px;
+}
+
+#savedVisitsTable th, #savedVisitsTable td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+    font-size: 0.9em;
+}
+
+#savedVisitsTable th {
+    background-color: #f2f2f2;
+}
+
+#notifyBtn {
+    background-color: #ff9800;
+    color: white;
+    padding: 12px 20px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    width: 100%;
+    max-width: 250px;
+    text-align: center;
+}
+
+#notifyBtn:hover {
+    background-color: #e68900;
 }
