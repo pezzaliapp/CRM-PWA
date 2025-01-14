@@ -1,523 +1,383 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#007bff" />
-  <title>Gestione Visite, Ordini e Preventivi</title>
-
-  <!-- Manifest per PWA -->
-  <link rel="manifest" href="./manifest.json" />
-
-  <!-- Collegamento a foglio di stile esterno -->
-  <link rel="stylesheet" href="./styles.css" />
-
-  <!-- Inclusione delle librerie XLSX e JSPDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-
-  <!-- Registrazione del Service Worker -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./service-worker.js')
-        .then((registration) => {
-          console.log('Service Worker registrato con successo:', registration.scope);
-        })
-        .catch((error) => {
-          console.error('Service Worker registration failed:', error);
-        });
-    }
-  </script>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <meta name="theme-color" content="#007bff"/>
+    <title>Gestione Visite, Ordini e Preventivi</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="stylesheet" href="./styles.css">
+    <!-- Inclusione delle librerie XLSX e JSPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js" defer></script>
+    <script src="./app.js" defer></script>
 </head>
-
 <body>
-  <button id="notifyBtn" class="no-print">Abilita notifiche</button>
+    <button id="notifyBtn" class="no-print">Abilita notifiche</button>
 
-  <!-- Notifiche push -->
-  <script>
-    document.getElementById('notifyBtn').addEventListener('click', () => {
-      Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-          new Notification('Notifica abilitata!', {
-            body: 'Ora riceverai notifiche importanti dalla nostra app.',
-            icon: './icons/icons_crm-192x192.png'
-          });
-        } else {
-          alert('Le notifiche non sono state abilitate.');
-        }
-      });
-    });
-  </script>
-
-  <div style="width: 100%; max-width: 1200px;">
-    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-      <button onclick="saveVisitData()" class="save-btn no-print">Salva Visita/Ordine</button>
-      <button onclick="loadVisitData()" class="load-btn no-print">Richiama Visite</button>
-      <button onclick="exportToExcel()" class="export-btn no-print">Esporta in Excel</button>
-      <button onclick="exportToCSVForMyMaps()" class="export-btn no-print">Esporta per My Maps</button>
-      <button onclick="printVisitsTable()" class="print-btn no-print">Stampa Tabella</button>
-      <button onclick="exportVisitsToJSON()" class="export-btn no-print">Esporta Visite in JSON</button>
-      <input
-        type="file"
-        id="importJSONFile"
-        class="no-print"
-        style="display: none;"
-        accept=".json"
-        onchange="importVisitsFromJSON(event)"
-      />
-      <button onclick="document.getElementById('importJSONFile').click()" class="export-btn no-print">Importa Visite da JSON</button>
-    </div>
-
-    <div style="text-align: center; margin: 20px;">
-      <label>
-        <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()" />
-        Abilita Modalità Scura
-      </label>
-    </div>
-
-    <div class="date-filter-section">
-      <label for="startDate">Data Inizio:</label>
-      <input type="date" id="startDate" />
-      <label for="endDate">Data Fine:</label>
-      <input type="date" id="endDate" />
-    </div>
-
-    <div class="table-container" id="printableTable">
-      <table id="savedVisitsTable">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Cliente</th>
-            <th>Totale</th>
-            <th>Nota</th>
-            <th>Modifica</th>
-            <th>Elimina</th>
-          </tr>
-        </thead>
-        <tbody id="savedVisitsTableBody"></tbody>
-      </table>
-    </div>
-
-    <div class="table-container" id="orderForm">
-      <h2>
-        Scheda Ordine
-        <label style="font-weight: normal; margin-left: 20px;">
-          <input type="checkbox" id="isPreventivo" onclick="togglePreventivo()" />
-          Preventivo
-        </label>
-      </h2>
-
-      <div class="logo-section">
-        <label for="logoInput">Carica il Logo:</label>
-        <input type="file" id="logoInput" accept="image/*" />
-        <img id="logoPreview" src="" alt="Anteprima Logo" style="display: none;" />
-      </div>
-
-      <div class="table-container">
-        <h3>Carica un file CSV dei Clienti:</h3>
-        <input type="file" id="potentialClientsCSV" accept=".csv" onchange="loadPotentialClients()" />
-        <div class="client-search-container">
-          <label for="orderSearchClientPotential">Seleziona Clienti</label>
-          <input
-            type="text"
-            id="orderSearchClientPotential"
-            placeholder="Cerca per nome, città o regione..."
-            oninput="filterOrderClients()"
-          />
-          <select id="orderPotentialClientsList" size="5" style="width: 100%;" onchange="selectOrderClient()"></select>
-          <button type="button" class="add-client-btn no-print" onclick="openAddClientModal()">Aggiungi Nuovo Cliente</button>
+    <div style="width: 100%; max-width: 1200px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+            <button onclick="saveVisitData()" class="save-btn no-print">Salva Visita/Ordine</button>
+            <button onclick="loadVisitData()" class="load-btn no-print">Richiama Visite</button>
+            <button onclick="exportToExcel()" class="export-btn no-print">Esporta in Excel</button>
+            <button onclick="exportToCSVForMyMaps()" class="export-btn no-print">Esporta per My Maps</button>
+            <button onclick="printVisitsTable()" class="print-btn no-print">Stampa Tabella</button>
+            <button onclick="exportVisitsToJSON()" class="export-btn no-print">Esporta Visite in JSON</button>
+            <input type="file" id="importJSONFile" class="no-print" style="display:none;" accept=".json" onchange="importVisitsFromJSON(event)">
+            <button onclick="document.getElementById('importJSONFile').click()" class="export-btn no-print">Importa Visite da JSON</button>
         </div>
-      </div>
 
-      <div class="global-discount-section">
-        <label for="globalDiscount">Sconto Globale %:</label>
-        <input type="number" id="globalDiscount" min="0" max="100" step="0.01" placeholder="Es. 10" />
-        <button type="button" class="apply-global-discount-btn no-print" onclick="applyGlobalDiscount()">Applica a Tutti</button>
-      </div>
+        <div style="text-align: center; margin: 20px;">
+            <label>
+                <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()"> Abilita Modalità Scura
+            </label>
+        </div>
 
-      <div class="table-responsive">
-        <table>
-          <tr>
-            <td>Data</td>
-            <td>
-              <input
-                type="date"
-                id="orderDate"
-                style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"
-              />
-            </td>
-            <td>Ns. riferimento</td>
-            <td>
-              <input
-                type="text"
-                id="referenceNumber"
-                style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"
-              />
-            </td>
-          </tr>
-          <tr>
-            <td>Numero Preventivo</td>
-            <td>
-              <input
-                type="text"
-                id="numeroPreventivo"
-                style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"
-              />
-            </td>
-            <td>Validità (giorni)</td>
-            <td>
-              <input
-                type="number"
-                id="validitaPreventivo"
-                style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"
-                min="1"
-                step="1"
-              />
-            </td>
-          </tr>
-          <tr>
-            <td>Cliente</td>
-            <td colspan="3"></td>
-          </tr>
-          <tr>
-            <td>Luogo se diverso da destinazione</td>
-            <td colspan="3">
-              <input
-                type="text"
-                id="destinationPlace"
-                style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"
-                oninput="updateNoteWithDestination()"
-              />
-            </td>
-          </tr>
-          <tr>
-            <td>Pagamento</td>
-            <td colspan="3">
-              <input
-                type="text"
-                id="paymentTerms"
-                style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"
-              />
-            </td>
-          </tr>
-        </table>
-      </div>
+        <div class="date-filter-section">
+            <label for="startDate">Data Inizio:</label>
+            <input type="date" id="startDate">
+            <label for="endDate">Data Fine:</label>
+            <input type="date" id="endDate">
+        </div>
 
-      <div class="table-responsive">
-        <table>
-          <tr>
-            <td>Trasporto</td>
-            <td colspan="3">
-              <div class="checkbox-group">
-                <label><input type="checkbox" id="transportSender" onclick="toggleTrasporto()" /> Mittente</label>
-                <label><input type="checkbox" id="transportReceiver" onclick="toggleTrasporto()" /> Destinatario</label>
-                <label><input type="checkbox" id="transportCarrier" onclick="toggleTrasporto()" /> Vettore</label>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>Porto</td>
-            <td colspan="3">
-              <div class="checkbox-group">
-                <label><input type="checkbox" id="portoFranco" onclick="togglePorto()" /> Franco</label>
-                <label><input type="checkbox" id="portoAssigned" onclick="togglePorto()" /> Assegnato</label>
-                <label><input type="checkbox" id="portoWithCharge" onclick="togglePorto()" /> Franco c/add</label>
-                <input
-                  type="text"
-                  id="portoValue"
-                  style="width: 100px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"
-                  placeholder="Valore"
-                  readonly
-                />
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>Trasporto a forfait</td>
-            <td colspan="3">
-              <input
-                type="number"
-                id="trasportoForfait"
-                min="0"
-                step="0.01"
-                placeholder="Inserisci valore"
-                style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"
-                oninput="calculateTotals()"
-              />
-            </td>
-          </tr>
-          <tr>
-            <td>Installazione a forfait</td>
-            <td colspan="3">
-              <input
-                type="number"
-                id="installazioneForfait"
-                min="0"
-                step="0.01"
-                placeholder="Inserisci valore"
-                style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"
-                oninput="calculateTotals()"
-              />
-            </td>
-          </tr>
-          <tr>
-            <td>Installazione</td>
-            <td colspan="3">
-              <div class="installazione-section">
-                <div class="checkbox-group">
-                  <label><input type="checkbox" id="installazioneNo" onclick="toggleInstallazione()" /> NO</label>
-                  <label>
-                    <input type="checkbox" id="installazioneSiInterno" onclick="toggleInstallazione()" />
-                    SI con SERVICE INTERNO
-                  </label>
-                  <label>
-                    <input type="checkbox" id="installazioneSiEsterno" onclick="toggleInstallazione()" />
-                    SI con SERVICE ESTERNO
-                  </label>
+        <div class="table-container" id="printableTable">
+            <table id="savedVisitsTable">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Cliente</th>
+                        <th>Totale</th>
+                        <th>Nota</th>
+                        <th>Modifica</th>
+                        <th>Elimina</th>
+                    </tr>
+                </thead>
+                <tbody id="savedVisitsTableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="table-container" id="orderForm">
+            <h2>
+                Scheda Ordine
+                <label style="font-weight: normal; margin-left: 20px;">
+                    <input type="checkbox" id="isPreventivo" onclick="togglePreventivo()"> Preventivo
+                </label>
+            </h2>
+
+            <div class="logo-section">
+                <label for="logoInput">Carica il Logo:</label>
+                <input type="file" id="logoInput" accept="image/*">
+                <img id="logoPreview" src="" alt="Anteprima Logo" style="display: none;">
+            </div>
+
+            <div class="table-container">
+                <h3>Carica un file CSV dei Clienti:</h3>
+                <input type="file" id="potentialClientsCSV" accept=".csv" onchange="loadPotentialClients()">
+                <div class="client-search-container">
+                    <label for="orderSearchClientPotential">Seleziona Clienti</label>
+                    <input type="text" id="orderSearchClientPotential" placeholder="Cerca per nome, città o regione..." oninput="filterOrderClients()">
+                    <select id="orderPotentialClientsList" size="5" style="width: 100%;" onchange="selectOrderClient()"></select>
+                    <button type="button" class="add-client-btn no-print" onclick="openAddClientModal()">Aggiungi Nuovo Cliente</button>
                 </div>
-                <div class="installazione-cost">
-                  <label for="installazioneCosto">Costo:</label>
-                  <input
-                    type="number"
-                    id="installazioneCosto"
-                    placeholder="€0,00"
-                    readonly
-                    style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"
-                  />
+            </div>
+
+            <div class="global-discount-section">
+                <label for="globalDiscount">Sconto Globale %:</label>
+                <input type="number" id="globalDiscount" min="0" max="100" step="0.01" placeholder="Es. 10">
+                <button type="button" class="apply-global-discount-btn no-print" onclick="applyGlobalDiscount()">Applica a Tutti</button>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <tr>
+                        <td>Data</td>
+                        <td><input type="date" id="orderDate" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></td>
+                        <td>Ns. riferimento</td>
+                        <td><input type="text" id="referenceNumber" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></td>
+                    </tr>
+                    <tr>
+                        <td>Numero Preventivo</td>
+                        <td><input type="text" id="numeroPreventivo" style="width: 100%; padding:8px; border-radius:4px; border:1px solid #ccc;"></td>
+                        <td>Validità (giorni)</td>
+                        <td><input type="number" id="validitaPreventivo" style="width: 100%; padding:8px; border-radius:4px; border:1px solid #ccc;" min="1" step="1"></td>
+                    </tr>
+                    <tr>
+                        <td>Cliente</td>
+                        <td colspan="3"></td>
+                    </tr>
+                    <tr>
+                        <td>Luogo se diverso da destinazione</td>
+                        <td colspan="3"><input type="text" id="destinationPlace" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;" oninput="updateNoteWithDestination()"></td>
+                    </tr>
+                    <tr>
+                        <td>Pagamento</td>
+                        <td colspan="3"><input type="text" id="paymentTerms" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <tr>
+                        <td>Trasporto</td>
+                        <td colspan="3">
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" id="transportSender" onclick="toggleTrasporto()"> Mittente</label>
+                                <label><input type="checkbox" id="transportReceiver" onclick="toggleTrasporto()"> Destinatario</label>
+                                <label><input type="checkbox" id="transportCarrier" onclick="toggleTrasporto()"> Vettore</label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Porto</td>
+                        <td colspan="3">
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" id="portoFranco" onclick="togglePorto()"> Franco</label>
+                                <label><input type="checkbox" id="portoAssigned" onclick="togglePorto()"> Assegnato</label>
+                                <label><input type="checkbox" id="portoWithCharge" onclick="togglePorto()"> Franco c/add</label>
+                                <input type="text" id="portoValue" style="width: 100px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;" placeholder="Valore" readonly/>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Trasporto a forfait</td>
+                        <td colspan="3">
+                            <input type="text" id="trasportoForfait" placeholder="Inserisci valore" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;" oninput="calculateTotals()">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Installazione a forfait</td>
+                        <td colspan="3">
+                            <input type="text" id="installazioneForfait" placeholder="Inserisci valore" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;" oninput="calculateTotals()">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Installazione</td>
+                        <td colspan="3">
+                            <div class="installazione-section">
+                                <div class="checkbox-group">
+                                    <label><input type="checkbox" id="installazioneNo" onclick="toggleInstallazione()"> NO</label>
+                                    <label><input type="checkbox" id="installazioneSiInterno" onclick="toggleInstallazione()"> SI con SERVICE INTERNO</label>
+                                    <label><input type="checkbox" id="installazioneSiEsterno" onclick="toggleInstallazione()"> SI con SERVICE ESTERNO</label>
+                                </div>
+                                <div class="installazione-cost">
+                                    <label for="installazioneCosto">Costo:</label>
+                                    <input type="text" id="installazioneCosto" placeholder="€0,00" readonly style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Il cliente ha il muletto per lo scarico?</td>
+                        <td colspan="3">
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" id="mulettoSi" onclick="toggleMuletto()"> SI</label>
+                                <label><input type="checkbox" id="mulettoNo" onclick="toggleMuletto()"> NO</label>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="product-search-container">
+                <label for="csvFile">Carica un file CSV dei Prodotti:</label>
+                <input type="file" id="csvFile" accept=".csv" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                <br>
+                <label for="searchProduct">Seleziona Prodotto</label>
+                <input type="text" id="searchProduct" placeholder="Cerca per codice o descrizione" oninput="filterProducts()" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; margin-top: 5px;">
+                <select id="productList" size="5" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; margin-top: 5px;" onchange="selectProduct()"></select>
+            </div>
+
+            <div class="table-responsive">
+                <table id="itemsTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAllProducts" onclick="toggleSelectAll(this)"></th>
+                            <th>Articolo</th>
+                            <th>Descrizione</th>
+                            <th>Q.tà</th>
+                            <th>Prezzo Lordo</th>
+                            <th>Sconto %</th>
+                            <th>Prezzo Netto</th>
+                            <th>Trasporto</th>
+                            <th>Installazione</th>
+                            <th>Prezzo Totale</th>
+                            <th>Data Consegna</th>
+                            <th>Rimuovi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+
+            <button type="button" class="add-row-btn no-print" onclick="addRow()">Aggiungi Riga Articolo</button>
+
+            <div class="totals-section">
+                <p><strong>Totale Articoli:</strong> <span id="totalArticlesValue">€0,00</span></p>
+                <p id="trasportoForfaitDisplay" class="hidden"><strong>Trasporto a forfait:</strong> <span id="trasportoForfaitValue">€0,00</span></p>
+                <p id="installazioneForfaitDisplay" class="hidden"><strong>Installazione a forfait:</strong> <span id="installazioneForfaitValue">€0,00</span></p>
+                <p id="totaleInclusoDisplay" class="hidden"><strong>Totale incluso Trasporti e Installazione a forfait:</strong> <span id="totaleInclusoValue">€0,00</span></p>
+            </div>
+
+            <div class="note-section">
+                <label for="orderNote">Nota:</label>
+                <textarea id="orderNote" placeholder="Inserisci una nota qui..."></textarea>
+            </div>
+
+            <div class="sconto-option">
+                <label><input type="checkbox" id="includeSconto" checked> Includi "Sconto %"</label>
+            </div>
+            <div class="trasporto-option">
+                <label><input type="checkbox" id="includeTrasporto" checked> Includi "Trasporto"</label>
+            </div>
+            <div class="installazione-option">
+                <label><input type="checkbox" id="includeInstallazione" checked> Includi "Installazione"</label>
+            </div>
+            <div class="noleggio-option">
+                <label><input type="checkbox" id="noleggioCheckbox" checked> Includi "Report del Noleggio"</label>
+            </div>
+            <div class="prezzo-netto-option">
+                <label><input type="checkbox" id="includePrezzoNetto" checked> Includi "Prezzo Netto"</label>
+            </div>
+
+            <div class="images-links-option">
+                <label>
+                    <input type="checkbox" id="includeImagesLinks" checked onchange="toggleImagesLinksPosition()"> 
+                    Includi la pagina "Immagini e Link"
+                </label>
+                <select id="imagesLinksPosition" style="margin-left: 10px;" disabled>
+                    <option value="afterProducts">Dopo Prodotti</option>
+                    <option value="beforeNoleggio">Prima del Report del Noleggio</option>
+                </select>
+            </div>
+
+            <button type="button" class="pdf-btn no-print" onclick="generatePDF()">Genera PDF</button>
+
+            <div class="table-container">
+                <h3>Immagine e Link per Articolo</h3>
+                <div class="table-responsive">
+                    <table id="imageLinkTable">
+                        <thead>
+                            <tr>
+                                <th>Articolo</th>
+                                <th>Immagine</th>
+                                <th>Link</th>
+                                <th>Rimuovi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
                 </div>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>Il cliente ha il muletto per lo scarico?</td>
-            <td colspan="3">
-              <div class="checkbox-group">
-                <label><input type="checkbox" id="mulettoSi" onclick="toggleMuletto()" /> SI</label>
-                <label><input type="checkbox" id="mulettoNo" onclick="toggleMuletto()" /> NO</label>
-              </div>
-            </td>
-          </tr>
-        </table>
-      </div>
+            </div>
+        </div>
 
-      <div class="product-search-container">
-        <label for="csvFile">Carica un file CSV dei Prodotti:</label>
-        <input type="file" id="csvFile" accept=".csv" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;" />
-        <br />
-        <label for="searchProduct">Seleziona Prodotto</label>
-        <input
-          type="text"
-          id="searchProduct"
-          placeholder="Cerca per codice o descrizione"
-          oninput="filterProducts()"
-          style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; margin-top: 5px;"
-        />
-        <select
-          id="productList"
-          size="5"
-          style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; margin-top: 5px;"
-          onchange="selectProduct()"
-        ></select>
-      </div>
+        <div class="table-container noleggio-container">
+            <h1>Simulatore Calcolo Canoni Locazione</h1>
+            <div class="input-group" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <label for="importo">Inserisci importo (o usa il totale del preventivo):</label>
+                <input type="text" id="importo" placeholder="Inserisci importo" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                <button class="noleggio-button no-print" onclick="useTotal()" style="flex-shrink: 0;">Usa Totale Preventivo</button>
+            </div>
+            <div class="input-group" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                <label for="durata">Durata:</label>
+                <select id="durata" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="12">12 mesi</option>
+                    <option value="18">18 mesi</option>
+                    <option value="24" selected>24 mesi</option>
+                    <option value="36">36 mesi</option>
+                    <option value="48">48 mesi</option>
+                    <option value="60">60 mesi</option>
+                </select>
+            </div>
+            <button class="noleggio-button no-print" onclick="calcola()" style="width: 100%; margin-top: 10px;">Calcola</button>
+            <div class="results">
+                <p>Rata mensile: <span id="rataMensile">0,00 €</span></p>
+                <p>Spese di contratto: <span id="speseContratto">0,00 €</span></p>
+                <p>Costo giornaliero: <span id="costoGiornaliero">0,00 €</span></p>
+                <p>Costo orario: <span id="costoOrario">0,00 €</span></p>
+            </div>
+        </div>
 
-      <div class="table-responsive">
-        <table id="itemsTable">
-          <thead>
-            <tr>
-              <th><input type="checkbox" id="selectAllProducts" onclick="toggleSelectAll(this)" /></th>
-              <th>Articolo</th>
-              <th>Descrizione</th>
-              <th>Q.tà</th>
-              <th>Prezzo Lordo</th>
-              <th>Sconto %</th>
-              <th>Prezzo Netto</th>
-              <th>Trasporto</th>
-              <th>Installazione</th>
-              <th>Prezzo Totale</th>
-              <th>Data Consegna</th>
-              <th>Rimuovi</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-
-      <button type="button" class="add-row-btn no-print" onclick="addRow()">Aggiungi Riga Articolo</button>
-
-      <div class="totals-section">
-        <p>
-          <strong>Totale Articoli:</strong>
-          <span id="totalArticlesValue">€0,00</span>
-        </p>
-        <p id="trasportoForfaitDisplay" class="hidden">
-          <strong>Trasporto a forfait:</strong>
-          <span id="trasportoForfaitValue">€0,00</span>
-        </p>
-        <p id="installazioneForfaitDisplay" class="hidden">
-          <strong>Installazione a forfait:</strong>
-          <span id="installazioneForfaitValue">€0,00</span>
-        </p>
-        <p id="totaleInclusoDisplay" class="hidden">
-          <strong>Totale incluso Trasporti e Installazione a forfait:</strong>
-          <span id="totaleInclusoValue">€0,00</span>
-        </p>
-      </div>
-
-      <div class="note-section">
-        <label for="orderNote">Nota:</label>
-        <textarea id="orderNote" placeholder="Inserisci una nota qui..."></textarea>
-      </div>
-
-      <div class="sconto-option">
-        <label><input type="checkbox" id="includeSconto" checked /> Includi "Sconto %"</label>
-      </div>
-      <div class="trasporto-option">
-        <label><input type="checkbox" id="includeTrasporto" checked /> Includi "Trasporto"</label>
-      </div>
-      <div class="installazione-option">
-        <label><input type="checkbox" id="includeInstallazione" checked /> Includi "Installazione"</label>
-      </div>
-      <div class="noleggio-option">
-        <label><input type="checkbox" id="noleggioCheckbox" checked /> Includi "Report del Noleggio"</label>
-      </div>
-      <div class="prezzo-netto-option">
-        <label><input type="checkbox" id="includePrezzoNetto" checked /> Includi "Prezzo Netto"</label>
-      </div>
-
-      <div class="images-links-option">
-        <label>
-          <input type="checkbox" id="includeImagesLinks" checked onchange="toggleImagesLinksPosition()" />
-          Includi la pagina "Immagini e Link"
-        </label>
-        <select id="imagesLinksPosition" style="margin-left: 10px;" disabled>
-          <option value="afterProducts">Dopo Prodotti</option>
-          <option value="beforeNoleggio">Prima del Report del Noleggio</option>
-        </select>
-      </div>
-
-      <button type="button" class="pdf-btn no-print" onclick="generatePDF()">Genera PDF</button>
-
-      <div class="table-container">
-        <h3>Immagine e Link per Articolo</h3>
+        <h3>Informazioni Clienti Dettagliati</h3>
         <div class="table-responsive">
-          <table id="imageLinkTable">
-            <thead>
-              <tr>
-                <th>Articolo</th>
-                <th>Immagine</th>
-                <th>Link</th>
-                <th>Rimuovi</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome Azienda</th>
+                        <th>Indirizzo</th>
+                        <th>Città</th>
+                        <th>Provincia</th>
+                        <th>Regione</th>
+                        <th>CAP</th>
+                        <th>Telefono</th>
+                        <th>Cellulare</th>
+                        <th>Email</th>
+                        <th>Sito Web</th>
+                        <th>Cod.Cliente</th>
+                        <th>Pagamento</th>
+                    </tr>
+                </thead>
+                <tbody id="clientDetailsTableBody">
+                </tbody>
+            </table>
         </div>
-      </div>
+
+        <div id="addClientModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeAddClientModal()">&times;</span>
+                <h3>Aggiungi Nuovo Cliente</h3>
+                <form id="addClientForm">
+                    <label for="newClientName">Nome Azienda:</label>
+                    <input type="text" id="newClientName" required>
+
+                    <label for="newClientAddress">Indirizzo:</label>
+                    <input type="text" id="newClientAddress" required>
+
+                    <label for="newClientCity">Città:</label>
+                    <input type="text" id="newClientCity" required>
+
+                    <label for="newClientProvince">Provincia:</label>
+                    <input type="text" id="newClientProvince">
+
+                    <label for="newClientRegion">Regione:</label>
+                    <input type="text" id="newClientRegion">
+
+                    <label for="newClientCAP">CAP:</label>
+                    <input type="text" id="newClientCAP">
+
+                    <label for="newClientPhone">Telefono:</label>
+                    <input type="tel" id="newClientPhone">
+
+                    <label for="newClientFax">Cellulare:</label>
+                    <input type="text" id="newClientFax">
+
+                    <label for="newClientEmail">Email:</label>
+                    <input type="email" id="newClientEmail">
+
+                    <label for="newClientWebsite">Sito Web:</label>
+                    <input type="url" id="newClientWebsite">
+
+                    <label for="newClientVAT">Cod.Cliente:</label>
+                    <input type="text" id="newClientVAT">
+
+                    <label for="newClientTaxCode">Pagamento:</label>
+                    <input type="text" id="newClientTaxCode">
+
+                    <button type="submit" class="submit-client-btn no-print">Aggiungi Cliente</button>
+                </form>
+            </div>
+        </div>
     </div>
 
-    <div class="table-container noleggio-container">
-      <h1>Simulatore Calcolo Canoni Locazione</h1>
-      <div class="input-group" style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <label for="importo">Inserisci importo (o usa il totale del preventivo):</label>
-        <input
-          type="text"
-          id="importo"
-          placeholder="Inserisci importo"
-          style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"
-        />
-        <button class="noleggio-button no-print" onclick="useTotal()" style="flex-shrink: 0;">Usa Totale Preventivo</button>
-      </div>
-      <div class="input-group" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
-        <label for="durata">Durata:</label>
-        <select id="durata" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-          <option value="12">12 mesi</option>
-          <option value="18">18 mesi</option>
-          <option value="24" selected>24 mesi</option>
-          <option value="36">36 mesi</option>
-          <option value="48">48 mesi</option>
-          <option value="60">60 mesi</option>
-        </select>
-      </div>
-      <button class="noleggio-button no-print" onclick="calcola()" style="width: 100%; margin-top: 10px;">Calcola</button>
-      <div class="results">
-        <p>Rata mensile: <span id="rataMensile">0,00 €</span></p>
-        <p>Spese di contratto: <span id="speseContratto">0,00 €</span></p>
-        <p>Costo giornaliero: <span id="costoGiornaliero">0,00 €</span></p>
-        <p>Costo orario: <span id="costoOrario">0,00 €</span></p>
-      </div>
-    </div>
-
-    <h3>Informazioni Clienti Dettagliati</h3>
-    <div class="table-responsive">
-      <table>
-        <thead>
-          <tr>
-            <th>Nome Azienda</th>
-            <th>Indirizzo</th>
-            <th>Città</th>
-            <th>Provincia</th>
-            <th>Regione</th>
-            <th>CAP</th>
-            <th>Telefono</th>
-            <th>Cellulare</th>
-            <th>Email</th>
-            <th>Sito Web</th>
-            <th>Cod.Cliente</th>
-            <th>Pagamento</th>
-          </tr>
-        </thead>
-        <tbody id="clientDetailsTableBody"></tbody>
-      </table>
-    </div>
-
-    <div id="addClientModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeAddClientModal()">&times;</span>
-        <h3>Aggiungi Nuovo Cliente</h3>
-        <form id="addClientForm">
-          <label for="newClientName">Nome Azienda:</label>
-          <input type="text" id="newClientName" required />
-
-          <label for="newClientAddress">Indirizzo:</label>
-          <input type="text" id="newClientAddress" required />
-
-          <label for="newClientCity">Città:</label>
-          <input type="text" id="newClientCity" required />
-
-          <label for="newClientProvince">Provincia:</label>
-          <input type="text" id="newClientProvince" />
-
-          <label for="newClientRegion">Regione:</label>
-          <input type="text" id="newClientRegion" />
-
-          <label for="newClientCAP">CAP:</label>
-          <input type="text" id="newClientCAP" />
-
-          <label for="newClientPhone">Telefono:</label>
-          <input type="tel" id="newClientPhone" />
-
-          <label for="newClientFax">Cellulare:</label>
-          <input type="text" id="newClientFax" />
-
-          <label for="newClientEmail">Email:</label>
-          <input type="email" id="newClientEmail" />
-
-          <label for="newClientWebsite">Sito Web:</label>
-          <input type="url" id="newClientWebsite" />
-
-          <label for="newClientVAT">Cod.Cliente:</label>
-          <input type="text" id="newClientVAT" />
-
-          <label for="newClientTaxCode">Pagamento:</label>
-          <input type="text" id="newClientTaxCode" />
-
-          <button type="submit" class="submit-client-btn no-print">Aggiungi Cliente</button>
-        </form>
-      </div>
-    </div>
-  </div>
-
+    <script>
+        // Richiama la funzione JavaScript di app.js dopo il caricamento
+        // Tutti gli script necessari sono inclusi con defer
+    </script>
+</body>
+</html>
   <!-- Collegamento a file JavaScript esterno -->
   <script src="./app.js"></script>
 </body>
